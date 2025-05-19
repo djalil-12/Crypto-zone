@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crypto Zone</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <span class="gray">C</span><span class="purple">R</span><span class="gray">Y</span><span class="purple">P</span><span class="gray">T</span><span class="purple">O</span>
+      <span> </span>
+      <span class="gray">Z</span><span class="purple">O</span><span class="gray">N</span><span class="purple">E</span>
+    </div>
+    <p class="subtitle">اكسب المال من تنفيذ المهام البسيطة</p>
+    <button class="start-btn" onclick="openLogin()">ابدأ الآن</button>
+  </div>
+
+  <div class="footer">
+    Powered by <span class="gray">D</span><span class="purple">J</span><span class="gray">-</span><span class="purple">I</span><span class="gray">S</span>
+  </div>
+
+  <!-- نافذة تسجيل الدخول -->
+  <div class="login-modal" id="loginModal">
+    <div class="login-content">
+      <span class="close-btn" onclick="closeLogin()">×</span>
+      <h2>تسجيل الدخول</h2>
+      <input type="email" id="email" placeholder="البريد الإلكتروني">
+      <input type="password" id="password" placeholder="كلمة المرور">
+      <button class="login-btn" onclick="loginEmail()">دخول</button>
+      <hr>
+      <button class="google-btn" onclick="loginWithGoogle()">تسجيل الدخول باستخدام Google</button>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0b4OPW-lKW0lEnNItbmytEevYUZHfLDg",
+      authDomain: "crypto-zone-936c3.firebaseapp.com",
+      projectId: "crypto-zone-936c3",
+      storageBucket: "crypto-zone-936c3.appspot.com",
+      messagingSenderId: "226456370327",
+      appId: "1:226456370327:web:7df69d28d15c8e192b7dd2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    window.loginWithGoogle = function () {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          alert("تم تسجيل الدخول بنجاح: " + result.user.email);
+        })
+        .catch((error) => {
+          alert("فشل تسجيل الدخول: " + error.message);
+        });
+    };
+
+    window.loginEmail = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          alert("تم تسجيل الدخول بنجاح");
+        })
+        .catch((error) => {
+          alert("خطأ في تسجيل الدخول: " + error.message);
+        });
+    };
+  </script>
+
+  <script>
+    function openLogin() {
+      document.getElementById("loginModal").style.display = "flex";
+    }
+
+    function closeLogin() {
+      document.getElementById("loginModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
