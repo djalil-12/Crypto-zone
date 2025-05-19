@@ -4,8 +4,111 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Crypto Zone</title>
-  <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: 'Lobster', cursive;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+      color: #fff;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .gray { color: #bbb; }
+    .purple { color: #bb00ff; }
+
+    .subtitle {
+      font-size: 20px;
+      margin-bottom: 30px;
+      color: #ccc;
+    }
+
+    .start-btn {
+      padding: 12px 24px;
+      background-color: #bb00ff;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 18px;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+
+    .start-btn:hover {
+      background-color: #9900cc;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 16px;
+      color: #bbb;
+      text-align: center;
+      width: 100%;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* نافذة منبثقة */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #111;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .close {
+      color: #fff;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .google-btn {
+      background-color: #db4437;
+      color: white;
+      padding: 10px 20px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -15,7 +118,7 @@
       <span class="gray">Z</span><span class="purple">O</span><span class="gray">N</span><span class="purple">E</span>
     </div>
     <p class="subtitle">اكسب المال من تنفيذ المهام البسيطة</p>
-    <button class="start-btn" onclick="openLogin()">ابدأ الآن</button>
+    <div class="start-btn" onclick="openModal()">ابدأ الآن</div>
   </div>
 
   <div class="footer">
@@ -23,22 +126,23 @@
   </div>
 
   <!-- نافذة تسجيل الدخول -->
-  <div class="login-modal" id="loginModal">
-    <div class="login-content">
-      <span class="close-btn" onclick="closeLogin()">×</span>
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
       <h2>تسجيل الدخول</h2>
-      <input type="email" id="email" placeholder="البريد الإلكتروني">
-      <input type="password" id="password" placeholder="كلمة المرور">
-      <button class="login-btn" onclick="loginEmail()">دخول</button>
-      <hr>
-      <button class="google-btn" onclick="loginWithGoogle()">تسجيل الدخول باستخدام Google</button>
+      <input type="email" id="emailInput" placeholder="البريد الإلكتروني" style="padding:10px; width:100%; margin-bottom:10px; border-radius:6px; border:none;">
+      <input type="password" id="passwordInput" placeholder="كلمة المرور" style="padding:10px; width:100%; margin-bottom:10px; border-radius:6px; border:none;">
+      <button onclick="signInWithEmail()" style="padding:10px 20px; border:none; background:#bb00ff; color:#fff; border-radius:6px; width:100%; font-weight:bold;">تسجيل الدخول</button>
+      <p style="margin: 15px 0; color:#aaa;">أو</p>
+      <div class="google-btn" onclick="signInWithGoogle()">تسجيل الدخول باستخدام Google</div>
     </div>
   </div>
 
-  <!-- Firebase -->
+  <!-- Firebase + سكربت تسجيل الدخول -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-analytics.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0b4OPW-lKW0lEnNItbmytEevYUZHfLDg",
@@ -46,45 +150,46 @@
       projectId: "crypto-zone-936c3",
       storageBucket: "crypto-zone-936c3.appspot.com",
       messagingSenderId: "226456370327",
-      appId: "1:226456370327:web:7df69d28d15c8e192b7dd2"
+      appId: "1:226456370327:web:7df69d28d15c8e192b7dd2",
+      measurementId: "G-QPEB48PY40"
     };
 
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    window.loginWithGoogle = function () {
+    window.signInWithEmail = function () {
+      const email = document.getElementById("emailInput").value;
+      const password = document.getElementById("passwordInput").value;
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          alert("تم تسجيل الدخول: " + userCredential.user.email);
+          closeModal();
+        })
+        .catch((error) => {
+          alert("خطأ في تسجيل الدخول: " + error.message);
+        });
+    };
+
+    window.signInWithGoogle = function () {
       signInWithPopup(auth, provider)
         .then((result) => {
-          alert("تم تسجيل الدخول بنجاح: " + result.user.email);
+          alert("مرحباً بك: " + result.user.displayName);
+          closeModal();
         })
         .catch((error) => {
           alert("فشل تسجيل الدخول: " + error.message);
         });
     };
 
-    window.loginEmail = function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          alert("تم تسجيل الدخول بنجاح");
-        })
-        .catch((error) => {
-          alert("خطأ في تسجيل الدخول: " + error.message);
-        });
-    };
-  </script>
-
-  <script>
-    function openLogin() {
+    window.openModal = function () {
       document.getElementById("loginModal").style.display = "flex";
-    }
+    };
 
-    function closeLogin() {
+    window.closeModal = function () {
       document.getElementById("loginModal").style.display = "none";
-    }
+    };
   </script>
 </body>
 </html>
