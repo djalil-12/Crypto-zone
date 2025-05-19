@@ -69,7 +69,6 @@
       50% { transform: translateY(-10px); }
     }
 
-    /* نافذة منبثقة */
     .modal {
       display: none;
       position: fixed;
@@ -125,7 +124,6 @@
     Powered by <span class="gray">D</span><span class="purple">J</span><span class="gray">-</span><span class="purple">I</span><span class="gray">S</span>
   </div>
 
-  <!-- نافذة تسجيل الدخول -->
   <div class="modal" id="loginModal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
@@ -138,11 +136,15 @@
     </div>
   </div>
 
-  <!-- Firebase + سكربت تسجيل الدخول -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-analytics.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signInWithRedirect,
+      getRedirectResult,
+      GoogleAuthProvider
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0b4OPW-lKW0lEnNItbmytEevYUZHfLDg",
@@ -155,7 +157,6 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
@@ -168,20 +169,24 @@
           closeModal();
         })
         .catch((error) => {
-          alert("خطأ في تسجيل الدخول: " + error.message);
+          alert("خطأ: " + error.message);
         });
     };
 
     window.signInWithGoogle = function () {
-      signInWithPopup(auth, provider)
-        .then((result) => {
+      signInWithRedirect(auth, provider);
+    };
+
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
           alert("مرحباً بك: " + result.user.displayName);
           closeModal();
-        })
-        .catch((error) => {
-          alert("فشل تسجيل الدخول: " + error.message);
-        });
-    };
+        }
+      })
+      .catch((error) => {
+        console.error("فشل تسجيل الدخول:", error.message);
+      });
 
     window.openModal = function () {
       document.getElementById("loginModal").style.display = "flex";
