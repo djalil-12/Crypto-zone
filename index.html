@@ -49,6 +49,7 @@
       font-size: 18px;
       transition: background-color 0.3s ease;
       cursor: pointer;
+      user-select: none;
     }
 
     .start-btn:hover {
@@ -95,6 +96,7 @@
       font-size: 28px;
       font-weight: bold;
       cursor: pointer;
+      user-select: none;
     }
 
     .google-btn {
@@ -106,6 +108,7 @@
       border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
+      user-select: none;
     }
   </style>
 </head>
@@ -117,7 +120,8 @@
       <span class="gray">Z</span><span class="purple">O</span><span class="gray">N</span><span class="purple">E</span>
     </div>
     <p class="subtitle">اكسب المال من تنفيذ المهام البسيطة</p>
-    <div class="start-btn" onclick="openModal()">ابدأ الآن</div>
+    <!-- زر ابدأ يظهر أو يظهر اسم المستخدم بعد تسجيل الدخول -->
+    <div id="startBtn" class="start-btn" onclick="openModal()">ابدأ الآن</div>
   </div>
 
   <div class="footer">
@@ -143,7 +147,9 @@
       signInWithEmailAndPassword,
       signInWithRedirect,
       getRedirectResult,
-      GoogleAuthProvider
+      GoogleAuthProvider,
+      onAuthStateChanged,
+      signOut
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     const firebaseConfig = {
@@ -160,9 +166,26 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    // فتح مودال تسجيل الدخول
+    window.openModal = function () {
+      document.getElementById("loginModal").style.display = "flex";
+    };
+
+    // إغلاق مودال تسجيل الدخول
+    window.closeModal = function () {
+      document.getElementById("loginModal").style.display = "none";
+    };
+
+    // تسجيل دخول بواسطة البريد الإلكتروني وكلمة المرور
     window.signInWithEmail = function () {
-      const email = document.getElementById("emailInput").value;
-      const password = document.getElementById("passwordInput").value;
+      const email = document.getElementById("emailInput").value.trim();
+      const password = document.getElementById("passwordInput").value.trim();
+
+      if (!email || !password) {
+        alert("يرجى إدخال البريد الإلكتروني وكلمة المرور");
+        return;
+      }
+
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           alert("تم تسجيل الدخول: " + userCredential.user.email);
@@ -173,10 +196,12 @@
         });
     };
 
+    // تسجيل دخول باستخدام Google (تحويل)
     window.signInWithGoogle = function () {
       signInWithRedirect(auth, provider);
     };
 
+    // التعامل مع نتيجة إعادة التوجيه بعد تسجيل دخول Google
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
@@ -188,13 +213,21 @@
         console.error("فشل تسجيل الدخول:", error.message);
       });
 
-    window.openModal = function () {
-      document.getElementById("loginModal").style.display = "flex";
-    };
-
-    window.closeModal = function () {
-      document.getElementById("loginModal").style.display = "none";
-    };
+    // تحديث واجهة المستخدم حسب حالة تسجيل الدخول
+    onAuthStateChanged(auth, (user) => {
+      const startBtn = document.getElementById("startBtn");
+      if (user) {
+        // إذا المستخدم مسجل دخول، عرض اسمه بدلاً من زر ابدأ
+        startBtn.textContent = `مرحباً، ${user.displayName || user.email}`;
+        startBtn.style.cursor = "default";
+        startBtn.onclick = null; // تعطيل فتح مودال تسجيل الدخول
+      } else {
+        // إذا لم يسجل دخول، عرض زر ابدأ
+        startBtn.textContent = "ابدأ الآن";
+        startBtn.style.cursor = "pointer";
+        startBtn.onclick = openModal;
+      }
+    });
   </script>
 </body>
 </html>
